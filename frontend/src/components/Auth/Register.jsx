@@ -1,47 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ name, email, password }); // Replace this with API call later
+    setError("");
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/register", form);
+      login(res.data);
+      navigate("/trips");
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-green-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 shadow-md rounded-lg w-80">
-        <h2 className="text-2xl font-bold mb-4 text-center text-green-600">Register</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          className="w-full mb-4 p-2 border rounded"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full mb-4 p-2 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full mb-4 p-2 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="bg-green-500 text-white w-full p-2 rounded hover:bg-green-600">
-          Register
-        </button>
-      </form>
+    <div className="min-h-screen bg-gradient-to-r from-cyan-500 to-indigo-500 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Create an Account</h2>
+        {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <input name="name" placeholder="Name" value={form.name} onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500" required />
+          <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500" required />
+          <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500" required />
+          <button type="submit"
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded-lg font-semibold transition">
+            Register
+          </button>
+        </form>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Already have an account?{" "}
+          <span onClick={() => navigate("/login")} className="text-cyan-800 font-semibold cursor-pointer hover:underline">
+            Login
+          </span>
+        </p>
+      </div>
     </div>
   );
 };
